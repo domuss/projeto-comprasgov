@@ -1,0 +1,1 @@
+# Coloquei os arquivos com uma numeração que seria a recomendada pra pedir pra IA ler, pra ela ter o contexto gradual.

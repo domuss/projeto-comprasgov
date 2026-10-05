@@ -1,0 +1,3 @@
+relatorio = https://docs.google.com/document/d/11EhDeRKvgAfZD_x90iEhZ7otCobHO_uk/edit?usp=sharing&ouid=116826825386191970172&rtpof=true&sd=true
+
+colab = https://colab.research.google.com/drive/1o2u2IYXfsFYuv_dWIaIIR6XQSWLtiqR3?usp=sharing

@@ -1,0 +1,7 @@
+dados_brutos/
+venv/
+.venv/
+__pycache__/
+virtualenv/
+*.pyc
+env/
