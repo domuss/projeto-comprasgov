@@ -85,9 +85,9 @@ A divisão de atividades fica assim:
 
 | Pessoa | Integrante | Responsabilidade principal |
 |---|---|---|
-| Pessoa 1 (P1) | Davi | Entendimento das bases, seleção de colunas, CATSER, recorte, divisões oficiais, problema e questões de pesquisa. |
-| Pessoa 2 (P2) | Mariana | Tipos das colunas, duplicatas exatas, valores ausentes e pequenas padronizações textuais. |
-| Pessoa 3 (P3) | Maria Clara | Validação dos valores, estatística descritiva básica, dataset final, dicionário de dados e limitações. |
+| Pessoa 1 (P1) | Davi | Entendimento das bases, CATSER, recorte, divisões oficiais, seleção de colunas e integração dos dados; problema, questões de pesquisa, referencial teórico e dicionário de dados. |
+| Pessoa 2 (P2) | Mariana | Tipos das colunas, unidade de contagem, duplicatas exatas, valores ausentes, pequenas padronizações textuais e as limitações da limpeza estrutural. |
+| Pessoa 3 (P3) | Maria Clara | Validação dos valores, estatística descritiva básica, dataset final e as limitações do dataset produzido. |
 
 As atividades de notebook, relatório, apresentação e trabalho científico de cada pessoa estão detalhadas no [arquivo de tarefas](docs/contexto/6-divisao_tarefas_etapa1_projeto_topicos.md). K-Means, interpretação de clusters e análises aprofundadas de evolução temporal, preços e fornecedores ficam para uma etapa futura.
 

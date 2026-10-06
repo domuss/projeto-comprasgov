@@ -6,6 +6,7 @@ Nesta etapa, o foco é:
 
 - entendimento das bases;
 - seleção do recorte;
+- integração dos dados;
 - pré-processamento;
 - estatística descritiva básica;
 - dataset final tratado;
@@ -13,11 +14,13 @@ Nesta etapa, o foco é:
 - limitações;
 - trabalho científico relacionado.
 
+A Pessoa 1 concentra a parte inicial do notebook: além do entendimento das bases e da definição do recorte, também é responsável pela **integração dos dados**, que acontece logo no início do fluxo. As Pessoas 2 e 3 ficam com **tratamento e limitações**, partindo da base já integrada.
+
 ---
 
-# Pessoa 1 — Entendimento das bases, CATSER e definição do recorte
+# Pessoa 1 — Entendimento das bases, CATSER, recorte e integração
 
-## Notebook
+## Notebook — Seção 1: entendimento
 
 Responsabilidades:
 
@@ -26,13 +29,26 @@ Responsabilidades:
 - explicar a relação entre `COMPRA`, `COMPRA_ITEM`, `ITEM_RESULTADO` e CATSER;
 - explicar por que `COMPRA_ITEM` será a base principal;
 - listar as colunas disponíveis;
-- selecionar apenas as colunas importantes para o trabalho;
 - identificar os grupos CATSER relevantes;
-- filtrar os grupos escolhidos;
+- explicar a hierarquia oficial do catálogo e o nível de Divisão.
+
+## Notebook — Seção 2: integração
+
+Responsabilidades:
+
+- selecionar os serviços dos 15 grupos nos arquivos anuais completos de `COMPRA_ITEM` (2021 a 2026);
+- padronizar os nomes de colunas que mudam entre os anos;
+- selecionar apenas as colunas importantes para o trabalho;
+- reunir os seis anos em uma única tabela;
+- relacionar os itens ao CATSER pelo código do serviço, sem multiplicar linhas;
+- manter o código e o nome oficial do grupo CATSER;
 - acrescentar o código e o nome das quatro divisões oficiais do CATSER;
-- manter também o código e o nome oficial do grupo CATSER;
-- conferir se os registros ficaram corretamente classificados;
-- mostrar o número inicial de registros e colunas.
+- conferir se os registros ficaram corretamente classificados, incluindo a comparação entre `codigo_grupo` (informado no item) e `codigo_grupo_catser` (obtido no catálogo);
+- distinguir `ano_compra` de `ano_origem`;
+- mostrar o número inicial de registros e colunas;
+- salvar a base integrada e disponibilizá-la para as Pessoas 2 e 3.
+
+A base integrada é a entrada do trabalho das Pessoas 2 e 3. Ela ainda **não** é a base tratada: tipos, duplicatas, ausências e valores inválidos ficam para as seções seguintes.
 
 ## Divisões oficiais adotadas
 
@@ -47,6 +63,26 @@ As quatro divisões pertencem à Seção 1 — Serviços de TIC. O recorte perma
 
 O CSV CATSER local não contém os campos de divisão. A Pessoa 1 deve acrescentar `codigo_divisao_catser` e `nome_divisao_catser` usando a correspondência oficial da tabela acima e conferir os grupos mapeados. Preserve os códigos e nomes de grupo e divisão.
 
+## Dicionário de dados
+
+A Pessoa 1 é responsável pelo dicionário de dados, porque definiu a seleção de colunas na integração.
+
+Exemplo de estrutura:
+
+| Coluna | Tipo | Descrição |
+|---|---|---|
+| `id_compra_item` | texto | Identificador do item da contratação |
+| `ano_compra` | inteiro | Ano relacionado à contratação |
+| `codigo_grupo_catser` | texto | Código oficial do grupo CATSER |
+| `nome_grupo_catser` | texto | Nome oficial do grupo CATSER |
+| `codigo_divisao_catser` | texto | Código oficial da divisão CATSER: 11, 13, 16 ou 17 |
+| `nome_divisao_catser` | texto | Nome oficial da divisão CATSER à qual pertence o grupo selecionado |
+| `quantidade` | numérico | Quantidade associada ao item |
+| `valor_unitario_estimado` | numérico | Valor unitário estimado |
+| `valor_total` | numérico | Valor total associado ao item |
+
+**Atenção à ordem:** o dicionário descreve o **dataset final**, não a base integrada. Os tipos vêm das conversões feitas pela Pessoa 2 e a lista final de colunas vem da Pessoa 3. Por isso o dicionário é preenchido **depois** do trabalho das duas, e não durante a integração.
+
 ## Relatório
 
 Responsabilidades:
@@ -54,22 +90,27 @@ Responsabilidades:
 - título do projeto;
 - problema investigado;
 - questões de pesquisa;
+- referencial teórico;
 - fonte dos dados;
 - explicação das bases utilizadas;
 - explicação do CATSER;
 - explicação da escolha dos grupos;
 - explicação do uso das quatro divisões oficiais na análise;
+- seção de integração dos dados;
+- dicionário de dados;
 - deixar claro que Divisão e Grupo são níveis oficiais do CATSER e que a equipe definiu os grupos incluídos no recorte.
 
 ## Apresentação
 
 Essa pessoa deve explicar principalmente:
 
-> De onde vieram os dados, o que cada registro representa, quais colunas foram escolhidas e como foi definido o recorte de serviços de software/TIC.
+> De onde vieram os dados, o que cada registro representa, quais colunas foram escolhidas, como foi definido o recorte de serviços de software/TIC e como as bases foram integradas.
 
 ---
 
-# Pessoa 2 — Limpeza estrutural dos dados
+# Pessoa 2 — Tratamento estrutural dos dados
+
+Parte da base integrada produzida pela Pessoa 1.
 
 ## Notebook
 
@@ -94,7 +135,19 @@ df["quantidade"] = pd.to_numeric(
 )
 ```
 
-### 2. Identificar e remover duplicatas exatas
+A base integrada é carregada com as colunas como texto, para preservar identificadores. As conversões de números e datas são feitas aqui.
+
+### 2. Definir o que uma linha representa
+
+Antes de tratar duplicatas, é preciso decidir a unidade de contagem.
+
+```python
+df["id_compra_item"].duplicated().sum()
+```
+
+Uma linha do arquivo pode representar uma ocorrência ou uma versão do mesmo item. A decisão é tomada em grupo, mas a Pessoa 2 implementa e documenta o critério, porque todas as contagens seguintes dependem dele.
+
+### 3. Identificar e remover duplicatas exatas
 
 ```python
 df.duplicated().sum()
@@ -108,7 +161,7 @@ Justificativa:
 
 > Registros exatamente repetidos foram removidos para evitar contagem duplicada da mesma observação.
 
-### 3. Verificar valores ausentes
+### 4. Verificar valores ausentes
 
 ```python
 df[colunas_importantes].isna().sum()
@@ -122,7 +175,7 @@ A pessoa deve identificar:
 - quais delas são essenciais;
 - quantos registros seriam perdidos caso esses valores fossem removidos.
 
-### 4. Tratar apenas ausentes essenciais
+### 5. Tratar apenas ausentes essenciais
 
 Não preencher automaticamente com:
 
@@ -133,7 +186,7 @@ Não preencher automaticamente com:
 
 Quando uma informação essencial estiver ausente e não houver forma segura de recuperá-la, o registro pode ser removido da análise correspondente.
 
-### 5. Fazer pequenas padronizações textuais
+### 6. Fazer pequenas padronizações textuais
 
 Exemplo:
 
@@ -152,22 +205,26 @@ Responsabilidades:
 
 - início da seção de pré-processamento;
 - número de registros antes do tratamento;
+- critério adotado para o que uma linha representa;
 - quantidade de duplicatas encontradas;
 - quantidade de duplicatas removidas;
 - valores ausentes encontrados;
 - critérios utilizados para exclusão;
 - alterações de tipo realizadas;
-- padronizações simples aplicadas.
+- padronizações simples aplicadas;
+- limitações decorrentes da limpeza estrutural.
 
 ## Apresentação
 
 Essa pessoa deve explicar principalmente:
 
-> Como foi feita a limpeza estrutural da base: duplicatas, tipos incorretos, valores ausentes e pequenas padronizações.
+> Como foi feita a limpeza estrutural da base: o que uma linha representa, duplicatas, tipos incorretos, valores ausentes e pequenas padronizações.
 
 ---
 
-# Pessoa 3 — Validação dos valores, dataset final, estatística descritiva e limitações
+# Pessoa 3 — Validação dos valores, estatística descritiva, dataset final e limitações
+
+Parte da base já tratada estruturalmente pela Pessoa 2.
 
 ## Notebook
 
@@ -250,25 +307,8 @@ Responsabilidades:
 - conferir número final de colunas;
 - validar se as colunas importantes permanecem presentes;
 - exportar o dataset tratado;
-- garantir que os códigos e nomes oficiais de grupo e divisão CATSER estejam presentes.
-
-### 6. Criar o dicionário de dados final
-
-Exemplo de estrutura:
-
-| Coluna | Tipo | Descrição |
-|---|---|---|
-| `id_compra_item` | texto | Identificador do item da contratação |
-| `ano_compra` | inteiro | Ano relacionado à contratação |
-| `codigo_grupo_catser` | inteiro | Código oficial do grupo CATSER |
-| `nome_grupo_catser` | texto | Nome oficial do grupo CATSER |
-| `codigo_divisao_catser` | texto | Código oficial da divisão CATSER: 11, 13, 16 ou 17 |
-| `nome_divisao_catser` | texto | Nome oficial da divisão CATSER à qual pertence o grupo selecionado |
-| `quantidade` | numérico | Quantidade associada ao item |
-| `valor_unitario_estimado` | numérico | Valor unitário estimado |
-| `valor_total` | numérico | Valor total associado ao item |
-
-Os nomes e descrições devem ser ajustados conforme o dataset final real.
+- garantir que os códigos e nomes oficiais de grupo e divisão CATSER estejam presentes;
+- informar à Pessoa 1 a lista final de colunas e tipos, para o dicionário de dados.
 
 ## Relatório
 
@@ -278,7 +318,6 @@ Responsabilidades:
 - validações feitas nos valores;
 - estatística descritiva básica;
 - apresentação do dataset final;
-- dicionário de dados;
 - limitações do pré-processamento;
 - limitações do dataset produzido.
 
@@ -291,6 +330,8 @@ Responsabilidades:
 - valores extremos foram mantidos quando não havia evidência suficiente de erro;
 - algumas inconsistências exigiriam consulta individual à fonte;
 - o recorte inclui somente os 15 grupos selecionados, não todos os serviços das quatro divisões CATSER;
+- registros sem código de catálogo não podem ser classificados e ficam fora do recorte;
+- a cobertura é muito desigual entre os anos: 2021 a 2023 representam uma fração pequena do recorte, por causa da transição para o PNCP;
 - 2026 pode representar um período incompleto, dependendo da data de coleta.
 
 ## Apresentação
@@ -348,14 +389,22 @@ Os três devem revisar juntos a parte do artigo para garantir que todos saibam e
 PESSOA 1
 Entendimento das bases
 +
+CATSER
++
+recorte dos 15 grupos
++
 seleção de colunas
 +
-CATSER
+integração
 +
 4 divisões oficiais do CATSER
         ↓
+    base integrada
+        ↓
 PESSOA 2
 Tipos
++
+unidade de contagem
 +
 duplicatas
 +
@@ -372,9 +421,11 @@ estatística descritiva básica
 +
 dataset final
 +
-dicionário
-+
 limitações
+        ↓
+PESSOA 1
+Dicionário de dados
+(preenchido a partir do dataset final)
 ```
 
 ---
@@ -383,9 +434,9 @@ limitações
 
 | Pessoa | Principal responsabilidade |
 |---|---|
-| Pessoa 1 | Bases + CATSER + recorte + divisões oficiais + problema e questões |
-| Pessoa 2 | Tipos + duplicatas + valores ausentes + padronização |
-| Pessoa 3 | Validação de valores + estatística descritiva básica + dataset final + dicionário + limitações |
+| Pessoa 1 | Bases + CATSER + recorte + divisões oficiais + integração + problema e questões + referencial teórico + dicionário de dados |
+| Pessoa 2 | Tipos + unidade de contagem + duplicatas + valores ausentes + padronização + limitações da limpeza |
+| Pessoa 3 | Validação de valores + estatística descritiva básica + dataset final + limitações do dataset |
 
 ---
 
